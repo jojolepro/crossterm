@@ -18,7 +18,7 @@ impl TerminalInput
         let input = Box::from(WindowsInput::new());
 
         #[cfg(not(target_os = "windows"))]
-        let cursor = Box::from(UnixInput::new());
+        let input = Box::from(UnixInput::new());
 
         TerminalInput {
             terminal_input: input,
