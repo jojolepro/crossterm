@@ -6,7 +6,7 @@ use super::IScreenManager;
 
 use std::any::Any;
 use std::cell::RefCell;
-use std::sync::{Arc,Mutex};
+//use std::sync::{Arc,Mutex};
 use std::io::{self, Read, Write,Stdout};
 use std::str::from_utf8;
 

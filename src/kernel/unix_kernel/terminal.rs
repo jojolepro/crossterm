@@ -1,7 +1,7 @@
 //! This module contains all `unix` specific terminal related logic.
 
 use self::libc::{c_int, c_ushort, ioctl, STDOUT_FILENO, TIOCGWINSZ};
-use common::commands::unix_command::{EnableRawModeCommand, NoncanonicalModeCommand};
+use common::commands::unix_command::{RawModeCommand, NoncanonicalModeCommand};
 use libc;
 pub use libc::termios;
 

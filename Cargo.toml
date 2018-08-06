@@ -34,3 +34,7 @@ path = "examples/simple.rs"
 [[example]]
 name = "duplex"
 path = "examples/duplex.rs"
+
+[[example]]
+name = "swap_write"
+path = "examples/swap_write.rs"

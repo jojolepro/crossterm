@@ -31,35 +31,40 @@ use std::thread;
 
 fn main() {
     let mut terminal = Arc::new(Mutex::new(Crossterm::new()));
-    let input = terminal.lock().unwrap().input().read_async();
+    let mut input = terminal.lock().unwrap().input().read_async();
     terminal.lock().unwrap().enable_raw_mode();
-    let mut input_buf = Arc::new(Mutex::new(String::new()));
+    let mut input_buf = Arc::new(Mutex::new(String::from("test")));
     let mut key_buf = [0 as u8; 32];
-
+    
+    // This thread emulates the output of your application (stdout + stderr)
+    let terminal_handle = terminal.clone();
+    let input_buf_handle = input_buf.clone();
     thread::spawn(move || {
         loop {
-            swap_write(&mut terminal.lock().unwrap(), "random program output",&input_buf.lock().unwrap());
+            swap_write(&mut terminal_handle.lock().unwrap(), "random program output",&input_buf_handle.lock().unwrap());
             sleep(Duration::from_millis(100));
         }
     });
-
+    
+    // Receives the key inputs and commands.
     loop {
-            let mut term = terminal.lock().unwrap();
-            let (term_width, term_height) = term.terminal().terminal_size();
+            //let mut term = terminal.lock().unwrap();
+            //let (term_width, term_height) = term.terminal().terminal_size();
             if let Ok(count) = input.read(&mut key_buf) {
                 for idx in 0..count {
                     let b = key_buf.get(idx).unwrap();
                     if *b == 3 {
+                        terminal.lock().unwrap().disable_raw_mode();
                         std::process::exit(0); // Ctrl+C = exit immediate
                     } else if *b == 13 {
                         // The return key was pressed.
                         let mut input_buf_tmp = &mut input_buf.lock().unwrap();
                         input_buf.lock().unwrap().clear();
-                        swap_write(&mut term, "", &input_buf_tmp);
+                        swap_write(&mut terminal.lock().unwrap(), "", &input_buf_tmp);
                     } else {
                         let mut input_buf_tmp = &mut input_buf.lock().unwrap();
                         input_buf_tmp.push(*b as char);
-                        swap_write(&mut term, "", &input_buf_tmp);
+                        swap_write(&mut terminal.lock().unwrap(), "", &input_buf_tmp);
                     }
                 }
             }
@@ -67,10 +72,11 @@ fn main() {
 }
 
 pub fn swap_write(terminal: &mut Crossterm, msg: &str, input_buf: &String) {
-    let (term_width, term_height) = terminal.terminal().terminal_size();
+    let mut term = terminal.terminal();
+    let (_, term_height) = term.terminal_size();
     terminal.cursor().goto(0, term_height);
-    terminal.terminal().clear(ClearType::CurrentLine);
-    terminal
-        .terminal()
-        .write(format!("{}\n\r>{}", msg, input_buf));
+    term.clear(ClearType::CurrentLine);
+    term.write(format!("{}\n\r", msg));
+    term.write(format!(">{}", input_buf));
 }
+
